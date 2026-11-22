@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>SafeSpace Guard</title>
+<style>body{font-family:system-ui;background:#0f172a;color:#e2e8f0;padding:24px}.card{max-width:740px;margin:0 auto;background:#1e293b;padding:22px;border-radius:12px}textarea{width:100%;box-sizing:border-box;background:#0f172a;color:#fff;padding:10px;border-radius:8px;border:1px solid #334155}button{background:#38bdf8;color:#0f172a;border:none;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;margin-top:8px}</style></head>
+<body><div class="card"><h1>SafeSpace Guard</h1><p>Local phishing, doxxing &amp; harassment filter.</p><textarea id="t" rows="4">Urgent: verify your account seed phrase now!</textarea><button id="b">Check Safety</button><pre id="o"></pre></div>
+<script type="module">import { analyzeSafety } from "./safety.mjs"; document.getElementById("b").onclick = () => { document.getElementById("o").textContent = JSON.stringify(analyzeSafety(document.getElementById("t").value), null, 2); };</script></body></html>
