@@ -1,5 +1,142 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>SafeSpace Guard</title>
-<style>body{font-family:system-ui;background:#0f172a;color:#e2e8f0;padding:24px}.card{max-width:740px;margin:0 auto;background:#1e293b;padding:22px;border-radius:12px}textarea{width:100%;box-sizing:border-box;background:#0f172a;color:#fff;padding:10px;border-radius:8px;border:1px solid #334155}button{background:#38bdf8;color:#0f172a;border:none;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;margin-top:8px}</style></head>
-<body><div class="card"><h1>SafeSpace Guard</h1><p>Local phishing, doxxing &amp; harassment filter.</p><textarea id="t" rows="4">Urgent: verify your account seed phrase now!</textarea><button id="b">Check Safety</button><pre id="o"></pre></div>
-<script type="module">import { analyzeSafety } from "./safety.mjs"; document.getElementById("b").onclick = () => { document.getElementById("o").textContent = JSON.stringify(analyzeSafety(document.getElementById("t").value), null, 2); };</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SafeSpace Guard — Local-First Digital Safety, Phishing &amp; Privacy Shield</title>
+  <style>
+    :root { --bg: #070c16; --card: #101828; --card2: #162238; --border: #253654; --fg: #f8fafc; --muted: #94a3b8; --cyan: #38bdf8; --green: #22c55e; --amber: #f59e0b; --red: #ef4444; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: radial-gradient(circle at top, #13223e, var(--bg) 55%); color: var(--fg); line-height: 1.55; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.35rem; }
+    h1 { margin: 0; font-size: 1.65rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin: 0.2rem 0 0; }
+    .presets { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    button { background: var(--card2); color: var(--fg); border: 1px solid var(--border); padding: 0.48rem 0.85rem; border-radius: 8px; font-weight: 600; font-size: 0.83rem; cursor: pointer; }
+    button:hover { border-color: var(--cyan); }
+    button.primary { background: linear-gradient(135deg, #0284c7, #4f46e5); border-color: transparent; color: #fff; }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.2rem; }
+    @media (max-width: 840px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.15rem; margin-bottom: 1.15rem; }
+    .panel h2 { margin: 0 0 0.8rem; font-size: 1rem; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+    textarea { width: 100%; min-height: 165px; background: #080d18; border: 1px solid var(--border); border-radius: 10px; color: var(--fg); padding: 0.85rem; font: inherit; font-size: 0.94rem; }
+    .gauge-wrap { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1rem; }
+    .score-ring { width: 92px; height: 92px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 6px solid var(--green); flex-shrink: 0; }
+    .score-ring strong { font-size: 1.6rem; line-height: 1; }
+    .score-ring span { font-size: 0.72rem; color: var(--muted); }
+    .pill { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.76rem; font-weight: 700; margin: 0.15rem 0.25rem 0.15rem 0; }
+    .pill.safe { background: rgba(34,197,94,0.16); color: #4ade80; border: 1px solid rgba(34,197,94,0.35); }
+    .pill.warn { background: rgba(245,158,11,0.16); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+    .pill.crit { background: rgba(239,68,68,0.18); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+    .sig { background: #0a1020; border: 1px solid var(--border); border-radius: 9px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; font-size: 0.86rem; }
+    .redacted { background: #080d18; border: 1px dashed var(--border); border-radius: 9px; padding: 0.75rem; font-family: ui-monospace, monospace; font-size: 0.82rem; color: #cbd5e1; white-space: pre-wrap; }
+    ul { margin: 0.4rem 0 0; padding-left: 1.2rem; font-size: 0.88rem; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>SafeSpace Guard</h1>
+        <p class="sub">100% Client-Side Phishing URL, Social-Engineering, Harassment &amp; PII Leak Shield — Zero Data Leaves Your Device</p>
+      </div>
+      <div class="presets" id="presetBar"></div>
+    </header>
+
+    <div class="grid">
+      <div>
+        <div class="panel">
+          <h2>Message / DM / URL Inspector <span class="pill safe">100% Local Processing</span></h2>
+          <textarea id="input" placeholder="Paste any suspicious DM, email, link, or community post to audit locally..."></textarea>
+          <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap">
+            <button class="primary" id="copyRedacted">Copy Privacy-Redacted Text</button>
+            <button id="exportJson">Export Incident Report (.json)</button>
+            <button id="clearBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Privacy-Safe Redacted Preview</h2>
+          <div class="redacted" id="redactedOut"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>Risk Assessment</h2>
+          <div class="gauge-wrap">
+            <div class="score-ring" id="ring">
+              <strong id="scoreNum">0</strong>
+              <span>/ 100</span>
+            </div>
+            <div>
+              <div id="sevBadge"></div>
+              <div id="catBadges" style="margin-top:0.35rem"></div>
+            </div>
+          </div>
+          <h3 style="margin:0.6rem 0 0.4rem;font-size:0.9rem;color:#cbd5e1">Actionable Safety Guidance</h3>
+          <ul id="guidanceList"></ul>
+        </div>
+
+        <div class="panel">
+          <h2>Explainable Threat Signals (<span id="sigCount">0</span>)</h2>
+          <div id="sigList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { DEMO_CASES, analyzeSafety } from "./safety.mjs";
+
+    const inp = document.getElementById("input");
+    const presetBar = document.getElementById("presetBar");
+    let latest = null;
+
+    Object.entries(DEMO_CASES).forEach(([k, item]) => {
+      const b = document.createElement("button");
+      b.textContent = item.label;
+      b.addEventListener("click", () => { inp.value = item.text; render(); });
+      presetBar.appendChild(b);
+    });
+
+    function render() {
+      latest = analyzeSafety(inp.value);
+      const ring = document.getElementById("ring");
+      const cls = latest.score >= 65 ? "crit" : latest.score >= 15 ? "warn" : "safe";
+      const color = latest.score >= 65 ? "#ef4444" : latest.score >= 15 ? "#f59e0b" : "#22c55e";
+      ring.style.borderColor = color;
+      document.getElementById("scoreNum").textContent = latest.score;
+      document.getElementById("scoreNum").style.color = color;
+      document.getElementById("sevBadge").innerHTML = `<span class="pill ${cls}">${latest.severity}</span>`;
+      document.getElementById("catBadges").innerHTML = latest.categories.length
+        ? latest.categories.map(c => `<span class="pill ${cls}">${c}</span>`).join("")
+        : `<span class="pill safe">Clean Message</span>`;
+
+      document.getElementById("guidanceList").innerHTML = latest.guidance.map(g => `<li>${g}</li>`).join("");
+      document.getElementById("sigCount").textContent = latest.signals.length;
+      document.getElementById("sigList").innerHTML = latest.signals.length
+        ? latest.signals.map(s => `<div class="sig"><strong>[${s.category} · ${s.severity.toUpperCase()}]</strong> ${s.detail}</div>`).join("")
+        : `<div class="sig" style="color:#4ade80">No threat indicators triggered.</div>`;
+      document.getElementById("redactedOut").textContent = latest.redactedText || "(Empty)";
+    }
+
+    inp.addEventListener("input", render);
+    document.getElementById("clearBtn").addEventListener("click", () => { inp.value = ""; render(); });
+    document.getElementById("copyRedacted").addEventListener("click", () => {
+      if (latest?.redactedText) navigator.clipboard?.writeText(latest.redactedText);
+    });
+    document.getElementById("exportJson").addEventListener("click", () => {
+      if (!latest) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(latest, null, 2)], { type: "application/json" }));
+      a.download = "safespace-incident-report.json";
+      a.click();
+    });
+
+    inp.value = DEMO_CASES.phishing_wallet.text;
+    render();
+  </script>
+</body>
+</html>
